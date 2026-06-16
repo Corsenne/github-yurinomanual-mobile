@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>医療安全マニュアル</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="mobile-header">
+      <div>
+        <p class="eyebrow">長崎百合野病院</p>
+        <h1>医療安全マニュアル</h1>
+      </div>
+      <div class="mode-tabs" role="tablist" aria-label="マニュアル切替">
+        <button class="mode-tab is-active" type="button" data-mode="pocket">ポケット</button>
+        <button class="mode-tab" type="button" data-mode="disaster">災害</button>
+      </div>
+    </header>
+
+    <main class="mobile-shell">
+      <section class="controls">
+        <label class="search-label" for="searchInput">検索</label>
+        <input id="searchInput" type="search" placeholder="キーワード" autocomplete="off">
+        <select id="chapterSelect" class="chapter-select" aria-label="章を選択"></select>
+      </section>
+
+      <section class="manual-layout">
+        <aside class="item-panel" aria-label="項目一覧">
+          <div class="panel-header">
+            <h2 id="listTitle">ポケットマニュアル</h2>
+            <span id="itemCount" class="count-pill">0件</span>
+          </div>
+          <div id="itemList" class="item-list"></div>
+        </aside>
+
+        <article class="viewer-panel" aria-label="PDF表示">
+          <div class="viewer-header">
+            <h2 id="viewerTitle">項目を選択してください</h2>
+            <a id="openPdf" class="open-pdf" href="#" target="_blank" rel="noopener" hidden>PDFを開く</a>
+          </div>
+          <iframe id="pdfViewer" class="pdf-viewer" title="PDFビューア"></iframe>
+        </article>
+      </section>
+    </main>
+
+    <script src="data/manuals.js"></script>
+    <script src="app.js?v=20260616-mobile-pages"></script>
+  </body>
+</html>

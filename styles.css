@@ -1,0 +1,264 @@
+:root {
+  --bg: #f5f7f6;
+  --panel: #ffffff;
+  --text: #17201c;
+  --muted: #63716c;
+  --line: #d7dfdb;
+  --accent: #0f766e;
+  --accent-dark: #0b5f59;
+  --soft: #e4f2ee;
+  --shadow: 0 10px 24px rgba(23, 32, 28, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+  line-height: 1.55;
+}
+
+.mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  gap: 10px;
+  padding: calc(12px + env(safe-area-inset-top)) 12px 12px;
+  background: #12312d;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(18, 49, 45, 0.18);
+}
+
+.eyebrow {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0.78;
+}
+
+h1,
+h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+.mode-tab {
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-weight: 700;
+}
+
+.mode-tab.is-active {
+  border-color: #fff;
+  background: #fff;
+  color: #12312d;
+}
+
+.mobile-shell {
+  padding: 12px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.search-label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+input[type="search"],
+.chapter-select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #b9c6c1;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+  padding: 8px 10px;
+}
+
+input[type="search"]:focus,
+.chapter-select:focus {
+  border-color: var(--accent);
+  outline: 3px solid rgba(15, 118, 110, 0.14);
+}
+
+.manual-layout {
+  display: grid;
+  gap: 12px;
+}
+
+.item-panel,
+.viewer-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.panel-header,
+.viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-header h2,
+.viewer-header h2 {
+  min-width: 0;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.count-pill {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--accent-dark);
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.item-list {
+  display: grid;
+  gap: 8px;
+  max-height: 42vh;
+  overflow: auto;
+  padding: 10px;
+}
+
+.item-button {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.item-button.is-active {
+  border-color: var(--accent);
+  background: var(--soft);
+  color: var(--accent-dark);
+}
+
+.item-title {
+  display: block;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.item-meta {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.open-pdf {
+  flex: 0 0 auto;
+  min-height: 34px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pdf-viewer {
+  display: block;
+  width: 100%;
+  height: 62vh;
+  min-height: 420px;
+  border: 0;
+  background: #eef2ef;
+}
+
+.empty-message {
+  padding: 18px;
+  color: var(--muted);
+}
+
+@media (min-width: 760px) {
+  .mobile-header {
+    grid-template-columns: 1fr minmax(260px, 360px);
+    align-items: end;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .mobile-shell {
+    padding: 18px;
+  }
+
+  .controls {
+    grid-template-columns: minmax(240px, 1fr) minmax(260px, 360px);
+    align-items: end;
+  }
+
+  .search-label {
+    grid-column: 1 / -1;
+  }
+
+  .manual-layout {
+    grid-template-columns: minmax(280px, 36%) 1fr;
+    align-items: start;
+  }
+
+  .item-list {
+    max-height: calc(100vh - 245px);
+  }
+
+  .pdf-viewer {
+    height: calc(100vh - 215px);
+    min-height: 620px;
+  }
+}
