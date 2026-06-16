@@ -122,6 +122,35 @@ input[type="search"]:focus,
   outline: 3px solid rgba(15, 118, 110, 0.14);
 }
 
+.pwa-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.utility-button {
+  min-height: 38px;
+  border-radius: 6px;
+  background: #1f4b45;
+  color: #fff;
+  padding: 7px 10px;
+  font-weight: 700;
+}
+
+.utility-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.offline-status {
+  grid-column: 1 / -1;
+  min-height: 20px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .manual-layout {
   display: grid;
   gap: 12px;
@@ -240,7 +269,7 @@ input[type="search"]:focus,
   }
 
   .controls {
-    grid-template-columns: minmax(240px, 1fr) minmax(260px, 360px);
+    grid-template-columns: minmax(240px, 1fr) minmax(260px, 360px) minmax(240px, 320px);
     align-items: end;
   }
 

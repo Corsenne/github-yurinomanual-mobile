@@ -16,7 +16,13 @@ const els = {
   viewerTitle: document.querySelector("#viewerTitle"),
   openPdf: document.querySelector("#openPdf"),
   pdfViewer: document.querySelector("#pdfViewer"),
+  installButton: document.querySelector("#installButton"),
+  offlineButton: document.querySelector("#offlineButton"),
+  offlineStatus: document.querySelector("#offlineStatus"),
 };
+
+let deferredInstallPrompt = null;
+let serviceWorkerReady = null;
 
 function normalize(value) {
   return String(value || "").toLocaleLowerCase("ja-JP").trim();
@@ -47,30 +53,8 @@ function pocketItems() {
   return archive.pocketManual?.items || [];
 }
 
-function pocketCoverItem() {
-  return {
-    serial: "pocket-cover",
-    chapterNo: "0",
-    chapterName: "表紙",
-    itemNo: "0",
-    title: "表紙",
-    pdfPath: "assets/pdfs/ポケットマニュアル/00 ポケットマニュアル表紙.pdf",
-    searchText: "ポケットマニュアル 表紙",
-  };
-}
-
 function disasterItems() {
   return archive.disasterManual?.items || [];
-}
-
-function disasterCoverItem() {
-  return {
-    serial: "disaster-cover",
-    number: "0",
-    title: "表紙",
-    pdfPath: "assets/pdfs/防災ポケットマニュアル/00_表紙.pdf",
-    searchText: "防災 災害 マニュアル 表紙",
-  };
 }
 
 function selectedPocketChapter() {
@@ -78,7 +62,7 @@ function selectedPocketChapter() {
   if (state.chapterNo && chapters.some((chapter) => chapter.chapterNo === state.chapterNo)) {
     return state.chapterNo;
   }
-  return chapters.find((chapter) => Number(chapter.count || 0) > 0)?.chapterNo || "";
+  return chapters.find((chapter) => chapter.chapterNo !== "0" && Number(chapter.count || 0) > 0)?.chapterNo || "";
 }
 
 function renderControls() {
@@ -91,6 +75,7 @@ function renderControls() {
     state.chapterNo = selected;
     els.chapterSelect.hidden = false;
     els.chapterSelect.innerHTML = pocketChapters()
+      .filter((chapter) => chapter.chapterNo !== "0")
       .map(
         (chapter) =>
           `<option value="${escapeHtml(chapter.chapterNo)}"${chapter.chapterNo === selected ? " selected" : ""}>
@@ -106,28 +91,25 @@ function renderControls() {
 function filteredItems() {
   const query = normalize(state.query);
   if (state.mode === "disaster") {
-    const items = query ? disasterItems() : [disasterCoverItem(), ...disasterItems()];
+    const items = disasterItems();
     if (!query) {
       return items;
     }
     return items.filter((item) => normalize([item.title, item.searchText].filter(Boolean).join(" ")).includes(query));
   }
 
-  let items = query ? pocketItems() : [pocketCoverItem(), ...pocketItems()];
+  let items = pocketItems();
   if (query) {
-    return [pocketCoverItem(), ...items].filter((item) => normalize(item.searchText).includes(query));
+    return items.filter((item) => normalize(item.searchText).includes(query));
   }
 
   const chapterNo = selectedPocketChapter();
-  return chapterNo ? items.filter((item) => item.serial === "pocket-cover" || item.chapterNo === chapterNo) : items;
+  return chapterNo ? items.filter((item) => item.chapterNo === "0" || item.chapterNo === chapterNo) : items;
 }
 
 function itemLabel(item) {
   if (state.mode === "disaster") {
-    return item.serial === "disaster-cover" ? item.title : `${item.number}. ${item.title}`;
-  }
-  if (item.serial === "pocket-cover") {
-    return item.title;
+    return item.number && item.number !== "0" ? `${item.number}. ${item.title}` : item.title;
   }
   return [item.itemNo, item.title].filter(Boolean).join("  ");
 }
@@ -135,9 +117,6 @@ function itemLabel(item) {
 function itemMeta(item) {
   if (state.mode === "disaster") {
     return "災害マニュアル";
-  }
-  if (item.serial === "pocket-cover") {
-    return "ポケットマニュアル";
   }
   return `${item.chapterNo}. ${item.chapterName}`;
 }
@@ -211,6 +190,93 @@ function render() {
   renderList();
 }
 
+function allManualAssetPaths() {
+  const pdfs = [...pocketItems(), ...disasterItems()]
+    .map((item) => item.pdfPath)
+    .filter(Boolean);
+  return [
+    "index.html",
+    "styles.css",
+    "app.js?v=20260616-pwa-v2",
+    "data/manuals.js",
+    "manifest.webmanifest",
+    "icons/icon-192.png",
+    "icons/icon-512.png",
+    ...pdfs,
+  ];
+}
+
+function setOfflineStatus(message) {
+  if (els.offlineStatus) {
+    els.offlineStatus.textContent = message;
+  }
+}
+
+async function refreshOfflineStatus() {
+  if (!("caches" in window)) {
+    setOfflineStatus("この環境ではオフライン保存を利用できません");
+    els.offlineButton.disabled = true;
+    return;
+  }
+  const cache = await caches.open("manual-pwa-v1");
+  const paths = allManualAssetPaths();
+  const cached = await Promise.all(paths.map((path) => cache.match(path)));
+  const cachedCount = cached.filter(Boolean).length;
+  if (cachedCount >= paths.length) {
+    setOfflineStatus(`保存済み ${cachedCount}/${paths.length}`);
+  } else {
+    setOfflineStatus(`未保存 ${cachedCount}/${paths.length}`);
+  }
+}
+
+async function saveOffline() {
+  if (!serviceWorkerReady) {
+    setOfflineStatus("この環境ではオフライン保存を利用できません");
+    return;
+  }
+  const registration = await serviceWorkerReady;
+  const worker = navigator.serviceWorker.controller || registration.active;
+  if (!worker) {
+    setOfflineStatus("準備中です。数秒後にもう一度押してください");
+    return;
+  }
+  const paths = allManualAssetPaths();
+  els.offlineButton.disabled = true;
+  setOfflineStatus(`保存中 0/${paths.length}`);
+  worker.postMessage({ type: "CACHE_ALL", urls: paths });
+}
+
+function setupPwa() {
+  if ("serviceWorker" in navigator) {
+    serviceWorkerReady = navigator.serviceWorker
+      .register("service-worker.js")
+      .then(() => navigator.serviceWorker.ready)
+      .then((registration) => {
+        refreshOfflineStatus();
+        return registration;
+      })
+      .catch(() => {
+        setOfflineStatus("オフライン保存の準備に失敗しました");
+      });
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      if (event.data?.type === "CACHE_PROGRESS") {
+        setOfflineStatus(`保存中 ${event.data.done}/${event.data.total}`);
+      }
+      if (event.data?.type === "CACHE_DONE") {
+        els.offlineButton.disabled = false;
+        setOfflineStatus(`保存済み ${event.data.done}/${event.data.total}`);
+      }
+      if (event.data?.type === "CACHE_ERROR") {
+        els.offlineButton.disabled = false;
+        setOfflineStatus(`保存エラー ${event.data.done}/${event.data.total}`);
+      }
+    });
+  } else {
+    setOfflineStatus("このブラウザではオフライン保存を利用できません");
+    els.offlineButton.disabled = true;
+  }
+}
+
 els.modeTabs.forEach((button) => {
   button.addEventListener("click", () => setMode(button.dataset.mode));
 });
@@ -236,4 +302,23 @@ els.itemList.addEventListener("click", (event) => {
   renderList();
 });
 
+els.offlineButton.addEventListener("click", () => saveOffline());
+
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  els.installButton.hidden = false;
+});
+
+els.installButton.addEventListener("click", async () => {
+  if (!deferredInstallPrompt) {
+    return;
+  }
+  els.installButton.hidden = true;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+});
+
 render();
+setupPwa();

@@ -1,0 +1,27 @@
+{
+  "name": "長崎百合野病院 医療安全マニュアル",
+  "short_name": "医療安全",
+  "description": "ポケットマニュアルと災害マニュアルを閲覧するための院内用アプリです。",
+  "id": "index.html",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f7f6",
+  "theme_color": "#12312d",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
