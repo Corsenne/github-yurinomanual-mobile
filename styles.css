@@ -39,6 +39,22 @@ body {
   box-shadow: 0 8px 20px rgba(18, 49, 45, 0.18);
 }
 
+.brand-lockup {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.brand-logo {
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  background: #fff;
+  object-fit: contain;
+  padding: 4px;
+}
+
 .eyebrow {
   margin: 0 0 2px;
   font-size: 12px;
@@ -113,10 +129,49 @@ button {
   padding: 12px;
 }
 
+.is-pdf-open .mobile-shell {
+  padding-right: 0;
+  padding-left: 0;
+}
+
 .home-view {
   min-height: calc(100vh - 112px - env(safe-area-inset-top));
   display: grid;
+  gap: 12px;
   align-items: start;
+}
+
+.home-search {
+  display: grid;
+  gap: 8px;
+}
+
+.home-search-results {
+  display: grid;
+  gap: 8px;
+}
+
+.home-result-button {
+  width: 100%;
+  min-height: 56px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+  padding: 9px 10px;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(23, 32, 28, 0.05);
+}
+
+.result-badge {
+  display: inline-block;
+  margin-bottom: 4px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--accent-dark);
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .manual-cards {
@@ -254,10 +309,15 @@ input[type="search"]:focus,
 .item-panel,
 .viewer-panel {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--panel);
   box-shadow: var(--shadow);
   overflow: hidden;
+}
+
+.is-pdf-open .viewer-panel {
+  border-right: 0;
+  border-left: 0;
 }
 
 .item-list {
@@ -301,6 +361,7 @@ input[type="search"]:focus,
 .pdf-viewer {
   display: block;
   width: 100%;
+  max-width: 100vw;
   height: calc(100vh - 156px - env(safe-area-inset-top));
   min-height: 520px;
   border: 0;
@@ -322,6 +383,11 @@ input[type="search"]:focus,
 
   .mobile-shell {
     padding: 18px;
+  }
+
+  .is-pdf-open .mobile-shell {
+    padding-right: 0;
+    padding-left: 0;
   }
 
   .home-view {

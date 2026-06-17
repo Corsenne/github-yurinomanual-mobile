@@ -10,13 +10,16 @@
     <title>医療安全マニュアル必携 β版</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=20260617-logo-v1">
   </head>
   <body>
     <header class="mobile-header">
-      <div>
-        <p class="eyebrow">長崎百合野病院</p>
-        <h1>医療安全マニュアル必携 β版</h1>
+      <div class="brand-lockup">
+        <img class="brand-logo" src="assets/yurino-logo-clean.png" alt="" aria-hidden="true">
+        <div>
+          <p class="eyebrow">長崎百合野病院</p>
+          <h1>医療安全マニュアル必携 β版</h1>
+        </div>
       </div>
       <div class="header-actions">
         <div class="header-nav">
@@ -37,6 +40,11 @@
 
     <main class="mobile-shell">
       <section id="homeView" class="home-view" aria-label="マニュアル選択">
+        <div class="home-search">
+          <label class="search-label" for="homeSearchInput">全体検索</label>
+          <input id="homeSearchInput" type="search" placeholder="ポケット・災害から検索" autocomplete="off">
+          <div id="homeSearchResults" class="home-search-results" aria-live="polite"></div>
+        </div>
         <div class="manual-cards">
           <a class="manual-card pocket-card" href="#pocket" data-card-mode="pocket">
             <span class="manual-card-label">医療安全</span>
@@ -76,6 +84,6 @@
     </main>
 
     <script src="data/manuals.js"></script>
-    <script src="app.js?v=20260617-reader-v1"></script>
+    <script src="app.js?v=20260617-logo-v1"></script>
   </body>
 </html>

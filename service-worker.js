@@ -1,11 +1,12 @@
-const CACHE_NAME = "manual-pwa-v4";
+const CACHE_NAME = "manual-pwa-v8";
 const CORE_ASSETS = [
   "./",
   "index.html",
-  "styles.css",
-  "app.js?v=20260617-reader-v1",
+  "styles.css?v=20260617-logo-v1",
+  "app.js?v=20260617-logo-v1",
   "data/manuals.js",
   "manifest.webmanifest",
+  "assets/yurino-logo-clean.png",
   "icons/icon-192.png",
   "icons/icon-512.png",
 ];

@@ -13,6 +13,7 @@ const manualMeta = {
 const state = {
   view: "home",
   mode: "pocket",
+  homeQuery: "",
   query: "",
   chapterNo: "",
   selectedId: "",
@@ -30,6 +31,9 @@ const els = {
   pocketCount: document.querySelector("#pocketCount"),
   disasterUpdated: document.querySelector("#disasterUpdated"),
   disasterCount: document.querySelector("#disasterCount"),
+  manualCards: document.querySelector(".manual-cards"),
+  homeSearchInput: document.querySelector("#homeSearchInput"),
+  homeSearchResults: document.querySelector("#homeSearchResults"),
   controls: document.querySelector(".controls"),
   searchInput: document.querySelector("#searchInput"),
   chapterField: document.querySelector("#chapterField"),
@@ -64,7 +68,7 @@ function assetPath(path) {
 }
 
 function pdfViewerSrc(path) {
-  return `${assetPath(path)}#toolbar=1&navpanes=0&view=FitH`;
+  return `${assetPath(path)}#toolbar=1&navpanes=0&view=FitH&zoom=page-width`;
 }
 
 function pocketChapters() {
@@ -79,8 +83,11 @@ function disasterItems() {
   return archive.disasterManual?.items || [];
 }
 
-function manualTitle(mode = state.mode) {
-  return manualMeta[mode]?.title || "";
+function allSearchableItems() {
+  return [
+    ...pocketItems().map((item) => ({ mode: "pocket", item })),
+    ...disasterItems().map((item) => ({ mode: "disaster", item })),
+  ];
 }
 
 function resetManualState() {
@@ -117,11 +124,49 @@ function renderHome() {
   els.homeButton.hidden = state.view === "home";
   els.pdfBackButton.hidden = state.view !== "manual" || !state.pdfOpen;
   els.modeTabsWrap.hidden = state.view !== "manual";
+  document.body.classList.toggle("is-pdf-open", state.view === "manual" && state.pdfOpen);
 
   els.pocketUpdated.textContent = `最終更新日 ${manualMeta.pocket.updatedAt}`;
   els.disasterUpdated.textContent = `最終更新日 ${manualMeta.disaster.updatedAt}`;
   els.pocketCount.textContent = `${pocketItems().length.toLocaleString("ja-JP")}件`;
   els.disasterCount.textContent = `${disasterItems().length.toLocaleString("ja-JP")}件`;
+  renderHomeSearch();
+}
+
+function renderHomeSearch() {
+  const query = normalize(state.homeQuery);
+  els.homeSearchInput.value = state.homeQuery;
+
+  if (!query) {
+    els.manualCards.hidden = false;
+    els.homeSearchResults.hidden = true;
+    els.homeSearchResults.innerHTML = "";
+    return;
+  }
+
+  const results = allSearchableItems()
+    .filter(({ mode, item }) => normalize([itemLabelFor(mode, item), itemMetaFor(mode, item), item.searchText].join(" ")).includes(query))
+    .slice(0, 40);
+
+  els.manualCards.hidden = true;
+  els.homeSearchResults.hidden = false;
+  if (!results.length) {
+    els.homeSearchResults.innerHTML = `<div class="empty-message">該当する項目はありません。</div>`;
+    return;
+  }
+
+  els.homeSearchResults.innerHTML = results
+    .map(({ mode, item }) => {
+      const badge = mode === "pocket" ? "ポケット" : "災害";
+      return `
+        <button class="home-result-button" type="button" data-mode="${escapeHtml(mode)}" data-id="${escapeHtml(item.serial)}">
+          <span class="result-badge">${escapeHtml(badge)}</span>
+          <span class="item-title">${escapeHtml(itemLabelFor(mode, item))}</span>
+          <span class="item-meta">${escapeHtml(itemMetaFor(mode, item))}</span>
+        </button>
+      `;
+    })
+    .join("");
 }
 
 function selectedPocketChapter() {
@@ -174,18 +219,26 @@ function filteredItems() {
   return chapterNo ? items.filter((item) => item.chapterNo === "0" || item.chapterNo === chapterNo) : items;
 }
 
-function itemLabel(item) {
-  if (state.mode === "disaster") {
+function itemLabelFor(mode, item) {
+  if (mode === "disaster") {
     return item.number && item.number !== "0" ? `${item.number}. ${item.title}` : item.title;
   }
   return [item.itemNo, item.title].filter(Boolean).join("  ");
 }
 
-function itemMeta(item) {
-  if (state.mode === "disaster") {
+function itemMetaFor(mode, item) {
+  if (mode === "disaster") {
     return "災害マニュアル";
   }
   return `${item.chapterNo}. ${item.chapterName}`;
+}
+
+function itemLabel(item) {
+  return itemLabelFor(state.mode, item);
+}
+
+function itemMeta(item) {
+  return itemMetaFor(state.mode, item);
 }
 
 function renderList() {
@@ -197,7 +250,7 @@ function renderList() {
     return;
   }
 
-  if (state.selectedId && !items.some((item) => item.serial === state.selectedId)) {
+  if (!state.pdfOpen && state.selectedId && !items.some((item) => item.serial === state.selectedId)) {
     state.selectedId = "";
     state.pdfOpen = false;
   }
@@ -216,7 +269,8 @@ function renderList() {
 }
 
 function findSelectedItem() {
-  return filteredItems().find((item) => item.serial === state.selectedId) || null;
+  const items = state.pdfOpen ? (state.mode === "disaster" ? disasterItems() : pocketItems()) : filteredItems();
+  return items.find((item) => item.serial === state.selectedId) || null;
 }
 
 function renderEmptyViewer() {
@@ -239,6 +293,21 @@ function setMode(mode) {
     return;
   }
   window.location.hash = mode;
+}
+
+function openManualItem(mode, serial) {
+  state.mode = mode;
+  state.view = "manual";
+  state.query = "";
+  state.chapterNo = "";
+  state.selectedId = serial;
+  state.pdfOpen = true;
+  els.searchInput.value = "";
+  if (routeMode() !== mode) {
+    window.location.hash = mode;
+  } else {
+    render();
+  }
 }
 
 function render() {
@@ -270,10 +339,11 @@ function allManualAssetPaths() {
     .filter(Boolean);
   return [
     "index.html",
-    "styles.css",
-    "app.js?v=20260617-reader-v1",
+    "styles.css?v=20260617-logo-v1",
+    "app.js?v=20260617-logo-v1",
     "data/manuals.js",
     "manifest.webmanifest",
+    "assets/yurino-logo-clean.png",
     "icons/icon-192.png",
     "icons/icon-512.png",
     ...pdfs,
@@ -292,7 +362,7 @@ async function refreshOfflineStatus() {
     els.offlineButton.disabled = true;
     return;
   }
-  const cache = await caches.open("manual-pwa-v4");
+  const cache = await caches.open("manual-pwa-v8");
   const paths = allManualAssetPaths();
   const cached = await Promise.all(paths.map((path) => cache.match(path)));
   const cachedCount = cached.filter(Boolean).length;
@@ -363,6 +433,19 @@ els.homeButton.addEventListener("click", () => {
 els.pdfBackButton.addEventListener("click", () => {
   state.pdfOpen = false;
   render();
+});
+
+els.homeSearchInput.addEventListener("input", (event) => {
+  state.homeQuery = event.target.value.trim();
+  renderHomeSearch();
+});
+
+els.homeSearchResults.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-mode][data-id]");
+  if (!button) {
+    return;
+  }
+  openManualItem(button.dataset.mode, button.dataset.id);
 });
 
 els.searchInput.addEventListener("input", (event) => {
