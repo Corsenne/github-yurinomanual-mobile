@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#12312d">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="医療安全マニュアル">
+    <meta name="apple-mobile-web-app-title" content="医療安全マニュアル必携 β版">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>医療安全マニュアル</title>
+    <title>医療安全マニュアル必携 β版</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link rel="stylesheet" href="styles.css">
@@ -16,46 +16,66 @@
     <header class="mobile-header">
       <div>
         <p class="eyebrow">長崎百合野病院</p>
-        <h1>医療安全マニュアル</h1>
+        <h1>医療安全マニュアル必携 β版</h1>
       </div>
-      <div class="mode-tabs" role="tablist" aria-label="マニュアル切替">
-        <button class="mode-tab is-active" type="button" data-mode="pocket">ポケット</button>
-        <button class="mode-tab" type="button" data-mode="disaster">災害</button>
-      </div>
-    </header>
-
-    <main class="mobile-shell">
-      <section class="controls">
-        <label class="search-label" for="searchInput">検索</label>
-        <input id="searchInput" type="search" placeholder="キーワード" autocomplete="off">
-        <select id="chapterSelect" class="chapter-select" aria-label="章を選択"></select>
+      <div class="header-actions">
+        <div class="header-nav">
+          <button id="homeButton" class="home-button" type="button" hidden>ホーム</button>
+          <button id="pdfBackButton" class="home-button" type="button" hidden>戻る</button>
+        </div>
         <div class="pwa-actions" aria-label="アプリ保存">
           <button id="installButton" class="utility-button" type="button" hidden>インストール</button>
           <button id="offlineButton" class="utility-button" type="button">オフライン保存</button>
           <span id="offlineStatus" class="offline-status" role="status">未保存</span>
         </div>
+        <div class="mode-tabs" role="tablist" aria-label="マニュアル切替" hidden>
+          <button class="mode-tab is-active" type="button" data-mode="pocket">ポケット</button>
+          <button class="mode-tab" type="button" data-mode="disaster">災害</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="mobile-shell">
+      <section id="homeView" class="home-view" aria-label="マニュアル選択">
+        <div class="manual-cards">
+          <a class="manual-card pocket-card" href="#pocket" data-card-mode="pocket">
+            <span class="manual-card-label">医療安全</span>
+            <span class="manual-card-title">ポケットマニュアル</span>
+            <span class="manual-card-meta" id="pocketUpdated">最終更新日 2026年6月17日</span>
+            <span class="manual-card-count" id="pocketCount">0件</span>
+          </a>
+          <a class="manual-card disaster-card" href="#disaster" data-card-mode="disaster">
+            <span class="manual-card-label">災害対応</span>
+            <span class="manual-card-title">災害マニュアル</span>
+            <span class="manual-card-meta" id="disasterUpdated">最終更新日 2026年6月17日</span>
+            <span class="manual-card-count" id="disasterCount">0件</span>
+          </a>
+        </div>
       </section>
 
-      <section class="manual-layout">
-        <aside class="item-panel" aria-label="項目一覧">
-          <div class="panel-header">
-            <h2 id="listTitle">ポケットマニュアル</h2>
-            <span id="itemCount" class="count-pill">0件</span>
+      <section id="manualView" class="manual-view" hidden>
+        <section class="controls">
+          <label class="search-label" for="searchInput">検索</label>
+          <input id="searchInput" type="search" placeholder="キーワード" autocomplete="off">
+          <div id="chapterField" class="chapter-field">
+            <label class="chapter-label" for="chapterSelect">チャプター選択</label>
+            <select id="chapterSelect" class="chapter-select" aria-label="章を選択"></select>
           </div>
-          <div id="itemList" class="item-list"></div>
-        </aside>
+        </section>
 
-        <article class="viewer-panel" aria-label="PDF表示">
-          <div class="viewer-header">
-            <h2 id="viewerTitle">項目を選択してください</h2>
-            <a id="openPdf" class="open-pdf" href="#" target="_blank" rel="noopener" hidden>PDFを開く</a>
-          </div>
-          <iframe id="pdfViewer" class="pdf-viewer" title="PDFビューア"></iframe>
-        </article>
+        <section class="manual-layout">
+          <aside class="item-panel" aria-label="項目一覧">
+            <div id="itemList" class="item-list"></div>
+          </aside>
+
+          <article class="viewer-panel" aria-label="PDF表示">
+            <iframe id="pdfViewer" class="pdf-viewer" title="PDFビューア"></iframe>
+          </article>
+        </section>
       </section>
     </main>
 
     <script src="data/manuals.js"></script>
-    <script src="app.js?v=20260616-pwa-v2"></script>
+    <script src="app.js?v=20260617-reader-v1"></script>
   </body>
 </html>

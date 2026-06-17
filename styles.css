@@ -63,6 +63,17 @@ h1 {
   gap: 8px;
 }
 
+.header-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.header-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
 button,
 select,
 input {
@@ -89,8 +100,78 @@ button {
   color: #12312d;
 }
 
+.home-button {
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-weight: 700;
+}
+
 .mobile-shell {
   padding: 12px;
+}
+
+.home-view {
+  min-height: calc(100vh - 112px - env(safe-area-inset-top));
+  display: grid;
+  align-items: start;
+}
+
+.manual-cards {
+  display: grid;
+  gap: 12px;
+}
+
+.manual-card {
+  display: grid;
+  gap: 8px;
+  min-height: 168px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  padding: 18px;
+  text-decoration: none;
+  box-shadow: var(--shadow);
+}
+
+.manual-card:active {
+  transform: translateY(1px);
+}
+
+.manual-card-label {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: var(--soft);
+  color: var(--accent-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.manual-card-title {
+  align-self: end;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.manual-card-meta,
+.manual-card-count {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.manual-card-count {
+  color: var(--accent-dark);
+}
+
+.disaster-card .manual-card-label {
+  background: #fdecc8;
+  color: #755108;
 }
 
 .controls {
@@ -124,7 +205,7 @@ input[type="search"]:focus,
 
 .pwa-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
 }
@@ -138,16 +219,30 @@ input[type="search"]:focus,
   font-weight: 700;
 }
 
+.pwa-actions .utility-button {
+  min-width: 132px;
+}
+
 .utility-button:disabled {
   cursor: wait;
   opacity: 0.72;
 }
 
 .offline-status {
-  grid-column: 1 / -1;
   min-height: 20px;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.78);
   font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.chapter-field {
+  display: grid;
+  gap: 4px;
+}
+
+.chapter-label {
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -165,37 +260,10 @@ input[type="search"]:focus,
   overflow: hidden;
 }
 
-.panel-header,
-.viewer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--line);
-}
-
-.panel-header h2,
-.viewer-header h2 {
-  min-width: 0;
-  font-size: 16px;
-  line-height: 1.35;
-}
-
-.count-pill {
-  flex: 0 0 auto;
-  border-radius: 999px;
-  background: var(--soft);
-  color: var(--accent-dark);
-  padding: 3px 8px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
 .item-list {
   display: grid;
   gap: 8px;
-  max-height: 42vh;
+  max-height: calc(100vh - 226px - env(safe-area-inset-top));
   overflow: auto;
   padding: 10px;
 }
@@ -230,23 +298,11 @@ input[type="search"]:focus,
   font-size: 12px;
 }
 
-.open-pdf {
-  flex: 0 0 auto;
-  min-height: 34px;
-  border-radius: 6px;
-  background: var(--accent);
-  color: #fff;
-  padding: 6px 10px;
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
 .pdf-viewer {
   display: block;
   width: 100%;
-  height: 62vh;
-  min-height: 420px;
+  height: calc(100vh - 156px - env(safe-area-inset-top));
+  min-height: 520px;
   border: 0;
   background: #eef2ef;
 }
@@ -268,26 +324,39 @@ input[type="search"]:focus,
     padding: 18px;
   }
 
+  .home-view {
+    min-height: calc(100vh - 94px - env(safe-area-inset-top));
+    align-items: center;
+  }
+
+  .manual-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .manual-card {
+    min-height: 220px;
+    padding: 22px;
+  }
+
   .controls {
-    grid-template-columns: minmax(240px, 1fr) minmax(260px, 360px) minmax(240px, 320px);
+    grid-template-columns: minmax(240px, 1fr) minmax(260px, 420px);
     align-items: end;
   }
 
   .search-label {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 
   .manual-layout {
-    grid-template-columns: minmax(280px, 36%) 1fr;
-    align-items: start;
+    grid-template-columns: 1fr;
   }
 
   .item-list {
-    max-height: calc(100vh - 245px);
+    max-height: calc(100vh - 188px);
   }
 
   .pdf-viewer {
-    height: calc(100vh - 215px);
+    height: calc(100vh - 142px);
     min-height: 620px;
   }
 }

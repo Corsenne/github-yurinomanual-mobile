@@ -1,9 +1,9 @@
-const CACHE_NAME = "manual-pwa-v2";
+const CACHE_NAME = "manual-pwa-v4";
 const CORE_ASSETS = [
   "./",
   "index.html",
   "styles.css",
-  "app.js?v=20260616-pwa-v2",
+  "app.js?v=20260617-reader-v1",
   "data/manuals.js",
   "manifest.webmanifest",
   "icons/icon-192.png",

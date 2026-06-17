@@ -1,6 +1,6 @@
 {
-  "name": "長崎百合野病院 医療安全マニュアル",
-  "short_name": "医療安全",
+  "name": "長崎百合野病院 医療安全マニュアル必携 β版",
+  "short_name": "安全必携β",
   "description": "ポケットマニュアルと災害マニュアルを閲覧するための院内用アプリです。",
   "id": "index.html",
   "start_url": "index.html",
