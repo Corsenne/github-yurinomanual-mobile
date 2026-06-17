@@ -1,8 +1,8 @@
-const CACHE_NAME = "manual-pwa-v8";
+const CACHE_NAME = "manual-pwa-v10";
 const CORE_ASSETS = [
   "./",
   "index.html",
-  "styles.css?v=20260617-logo-v1",
+  "styles.css?v=20260617-pdf-frame-v1",
   "app.js?v=20260617-logo-v1",
   "data/manuals.js",
   "manifest.webmanifest",

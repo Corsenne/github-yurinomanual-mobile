@@ -339,7 +339,7 @@ function allManualAssetPaths() {
     .filter(Boolean);
   return [
     "index.html",
-    "styles.css?v=20260617-logo-v1",
+    "styles.css?v=20260617-pdf-frame-v1",
     "app.js?v=20260617-logo-v1",
     "data/manuals.js",
     "manifest.webmanifest",
@@ -362,7 +362,7 @@ async function refreshOfflineStatus() {
     els.offlineButton.disabled = true;
     return;
   }
-  const cache = await caches.open("manual-pwa-v8");
+  const cache = await caches.open("manual-pwa-v10");
   const paths = allManualAssetPaths();
   const cached = await Promise.all(paths.map((path) => cache.match(path)));
   const cachedCount = cached.filter(Boolean).length;
