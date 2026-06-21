@@ -5,17 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#12312d">
     <title>PDF | 医療安全マニュアル必携 β版</title>
-    <link rel="stylesheet" href="styles.css?v=20260621-viewer-v1">
+    <link rel="stylesheet" href="styles.css?v=20260621-zoom-v1">
   </head>
   <body class="pdf-page">
     <header class="pdf-page-header">
-      <button id="viewerBackButton" class="pdf-page-back" type="button">← 戻る</button>
-      <h1 id="pdfTitle" class="pdf-page-title">PDF</h1>
+      <div class="pdf-page-heading">
+        <button id="viewerBackButton" class="pdf-page-back" type="button">← 戻る</button>
+        <h1 id="pdfTitle" class="pdf-page-title">PDF</h1>
+      </div>
+      <div class="pdf-zoom-controls" role="toolbar" aria-label="PDF拡大縮小">
+        <button id="zoomOutButton" class="pdf-zoom-button" type="button" aria-label="縮小">−</button>
+        <span id="zoomLabel" class="pdf-zoom-label" role="status">100%</span>
+        <button id="zoomInButton" class="pdf-zoom-button" type="button" aria-label="拡大">＋</button>
+        <button id="zoomFitButton" class="pdf-zoom-fit" type="button">幅に合わせる</button>
+      </div>
     </header>
     <main class="pdf-page-main">
-      <iframe id="standalonePdfViewer" class="standalone-pdf-viewer" title="PDFビューア"></iframe>
-      <p id="pdfError" class="pdf-error" hidden>PDFを開けませんでした。</p>
+      <div id="pdfCanvasScroll" class="pdf-canvas-scroll" aria-busy="true" tabindex="0">
+        <div id="pdfPages" class="pdf-pages"></div>
+      </div>
+      <p id="pdfLoading" class="pdf-message">PDFを読み込んでいます…</p>
+      <p id="pdfError" class="pdf-message" hidden>PDFを開けませんでした。</p>
     </main>
-    <script src="pdf-viewer.js?v=20260621-viewer-v1"></script>
+    <script type="module" src="pdf-viewer.js?v=20260621-zoom-v1"></script>
   </body>
 </html>

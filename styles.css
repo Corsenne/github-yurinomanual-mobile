@@ -384,7 +384,9 @@ input[type="search"]:focus,
 }
 
 .pdf-page {
+  display: flex;
   height: 100dvh;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -392,23 +394,34 @@ input[type="search"]:focus,
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  min-height: 58px;
+  flex: 0 0 auto;
+  gap: 8px;
   padding: calc(8px + env(safe-area-inset-top)) 10px 8px;
   background: #12312d;
   color: #fff;
+  box-shadow: 0 4px 14px rgba(18, 49, 45, 0.22);
 }
 
-.pdf-page-back {
+.pdf-page-heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.pdf-page-back,
+.pdf-zoom-button,
+.pdf-zoom-fit {
   min-height: 42px;
   border: 1px solid rgba(255, 255, 255, 0.38);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
-  padding: 7px 12px;
   font-weight: 700;
+}
+
+.pdf-page-back {
+  padding: 7px 12px;
 }
 
 .pdf-page-title {
@@ -419,21 +432,104 @@ input[type="search"]:focus,
   white-space: nowrap;
 }
 
-.pdf-page-main {
-  height: calc(100dvh - 58px - env(safe-area-inset-top));
+.pdf-zoom-controls {
+  display: grid;
+  grid-template-columns: 44px 64px 44px minmax(108px, 1fr);
+  gap: 7px;
+  align-items: center;
 }
 
-.standalone-pdf-viewer {
-  display: block;
+.pdf-zoom-button {
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.pdf-zoom-button:disabled {
+  opacity: 0.45;
+}
+
+.pdf-zoom-fit {
+  padding: 6px 10px;
+}
+
+.pdf-zoom-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.pdf-page-main {
+  position: relative;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  background: #dfe5e2;
+}
+
+.pdf-canvas-scroll {
   width: 100%;
   height: 100%;
-  border: 0;
-  background: #eef2ef;
+  overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: none;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
 }
 
-.pdf-error {
-  padding: 24px;
+.pdf-canvas-scroll:active {
+  cursor: grabbing;
+}
+
+.pdf-pages {
+  display: grid;
+  width: max-content;
+  min-width: 100%;
+  gap: 12px;
+  justify-items: center;
+  padding: 8px;
+  transform-origin: center top;
+}
+
+.pdf-page-sheet {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(23, 32, 28, 0.2);
+}
+
+.pdf-page-canvas {
+  display: block;
+}
+
+.pdf-page-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
   color: var(--muted);
+  font-size: 13px;
+}
+
+.pdf-page-sheet.has-render-error::after {
+  content: "このページを表示できませんでした";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  color: #9b2c2c;
+}
+
+.pdf-message {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  margin: 0;
+  place-content: center;
+  background: #eef2ef;
+  color: var(--muted);
+  padding: 24px;
+  text-align: center;
 }
 
 .empty-message {

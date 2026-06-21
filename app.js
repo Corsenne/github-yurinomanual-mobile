@@ -310,10 +310,16 @@ function allManualAssetPaths() {
     .filter(Boolean);
   return [...new Set([
     "index.html",
-    "styles.css?v=20260621-viewer-v1",
-    "app.js?v=20260621-viewer-v1",
+    "styles.css?v=20260621-zoom-v1",
+    "app.js?v=20260621-zoom-v1",
     "pdf-viewer.html",
-    "pdf-viewer.js?v=20260621-viewer-v1",
+    "pdf-viewer.js?v=20260621-zoom-v1",
+    "vendor/pdfjs/pdf.min.mjs",
+    "vendor/pdfjs/pdf.worker.min.mjs",
+    "vendor/pdfjs/wasm/jbig2.wasm",
+    "vendor/pdfjs/wasm/openjpeg.wasm",
+    "vendor/pdfjs/wasm/openjpeg_nowasm_fallback.js",
+    "vendor/pdfjs/wasm/qcms_bg.wasm",
     "data/manuals.js?v=20260621-light-v1",
     "manifest.webmanifest",
     "assets/yurino-logo-clean.webp",
@@ -335,7 +341,7 @@ async function refreshOfflineStatus() {
     els.offlineButton.disabled = true;
     return;
   }
-  const cache = await caches.open("manual-pwa-v13");
+  const cache = await caches.open("manual-pwa-v14");
   const paths = allManualAssetPaths();
   const cached = await Promise.all(paths.map((path) => cache.match(path)));
   const cachedCount = cached.filter(Boolean).length;
