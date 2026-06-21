@@ -1,9 +1,9 @@
-const CACHE_NAME = "manual-pwa-v14";
+const CACHE_NAME = "manual-pwa-v15";
 const CORE_ASSETS = [
   "./",
   "index.html",
-  "styles.css?v=20260621-zoom-v1",
-  "app.js?v=20260621-zoom-v1",
+  "styles.css?v=20260621-home-top-v1",
+  "app.js?v=20260621-home-top-v1",
   "pdf-viewer.html",
   "pdf-viewer.js?v=20260621-zoom-v1",
   "vendor/pdfjs/pdf.min.mjs",

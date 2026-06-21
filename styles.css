@@ -170,6 +170,7 @@ button {
   display: grid;
   gap: 12px;
   align-items: start;
+  align-content: start;
 }
 
 .home-search {
