@@ -16,15 +16,14 @@ const state = {
   homeQuery: "",
   query: "",
   chapterNo: "",
-  selectedId: "",
-  pdfOpen: false,
 };
 
 const els = {
   homeView: document.querySelector("#homeView"),
   manualView: document.querySelector("#manualView"),
+  menuButton: document.querySelector("#menuButton"),
+  headerMenu: document.querySelector("#headerMenu"),
   homeButton: document.querySelector("#homeButton"),
-  pdfBackButton: document.querySelector("#pdfBackButton"),
   modeTabs: document.querySelectorAll("[data-mode]"),
   modeTabsWrap: document.querySelector(".mode-tabs"),
   pocketUpdated: document.querySelector("#pocketUpdated"),
@@ -40,8 +39,6 @@ const els = {
   chapterSelect: document.querySelector("#chapterSelect"),
   itemPanel: document.querySelector(".item-panel"),
   itemList: document.querySelector("#itemList"),
-  viewerPanel: document.querySelector(".viewer-panel"),
-  pdfViewer: document.querySelector("#pdfViewer"),
   installButton: document.querySelector("#installButton"),
   offlineButton: document.querySelector("#offlineButton"),
   offlineStatus: document.querySelector("#offlineStatus"),
@@ -49,6 +46,31 @@ const els = {
 
 let deferredInstallPrompt = null;
 let serviceWorkerReady = null;
+const mobileMenuQuery = window.matchMedia("(max-width: 759px)");
+
+function setMenuOpen(open, restoreFocus = false) {
+  if (!mobileMenuQuery.matches) {
+    els.headerMenu.hidden = false;
+    els.menuButton.hidden = true;
+    els.menuButton.setAttribute("aria-expanded", "false");
+    return;
+  }
+  els.menuButton.hidden = false;
+  els.headerMenu.hidden = !open;
+  els.menuButton.setAttribute("aria-expanded", String(open));
+  els.menuButton.setAttribute("aria-label", open ? "メニューを閉じる" : "メニューを開く");
+  if (!open && restoreFocus) {
+    els.menuButton.focus();
+  }
+}
+
+function closeMenu(restoreFocus = false) {
+  setMenuOpen(false, restoreFocus);
+}
+
+function syncMenuLayout() {
+  setMenuOpen(false);
+}
 
 function normalize(value) {
   return String(value || "").toLocaleLowerCase("ja-JP").trim();
@@ -63,13 +85,6 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-function assetPath(path) {
-  return path;
-}
-
-function pdfViewerSrc(path) {
-  return `${assetPath(path)}#toolbar=1&navpanes=0&view=FitH&zoom=page-width`;
-}
 
 function pocketChapters() {
   return archive.pocketManual?.chapters || [];
@@ -93,8 +108,6 @@ function allSearchableItems() {
 function resetManualState() {
   state.query = "";
   state.chapterNo = "";
-  state.selectedId = "";
-  state.pdfOpen = false;
   els.searchInput.value = "";
 }
 
@@ -113,7 +126,6 @@ function applyRoute() {
     state.view = "manual";
   } else {
     state.view = "home";
-    state.pdfOpen = false;
   }
   render();
 }
@@ -122,9 +134,7 @@ function renderHome() {
   els.homeView.hidden = state.view !== "home";
   els.manualView.hidden = state.view !== "manual";
   els.homeButton.hidden = state.view === "home";
-  els.pdfBackButton.hidden = state.view !== "manual" || !state.pdfOpen;
   els.modeTabsWrap.hidden = state.view !== "manual";
-  document.body.classList.toggle("is-pdf-open", state.view === "manual" && state.pdfOpen);
 
   els.pocketUpdated.textContent = `最終更新日 ${manualMeta.pocket.updatedAt}`;
   els.disasterUpdated.textContent = `最終更新日 ${manualMeta.disaster.updatedAt}`;
@@ -250,16 +260,11 @@ function renderList() {
     return;
   }
 
-  if (!state.pdfOpen && state.selectedId && !items.some((item) => item.serial === state.selectedId)) {
-    state.selectedId = "";
-    state.pdfOpen = false;
-  }
 
   els.itemList.innerHTML = items
     .map((item) => {
-      const active = item.serial === state.selectedId ? " is-active" : "";
       return `
-        <button class="item-button${active}" type="button" data-id="${escapeHtml(item.serial)}">
+        <button class="item-button" type="button" data-id="${escapeHtml(item.serial)}">
           <span class="item-title">${escapeHtml(itemLabel(item))}</span>
           <span class="item-meta">${escapeHtml(itemMeta(item))}</span>
         </button>
@@ -268,25 +273,6 @@ function renderList() {
     .join("");
 }
 
-function findSelectedItem() {
-  const items = state.pdfOpen ? (state.mode === "disaster" ? disasterItems() : pocketItems()) : filteredItems();
-  return items.find((item) => item.serial === state.selectedId) || null;
-}
-
-function renderEmptyViewer() {
-  els.pdfViewer.removeAttribute("src");
-}
-
-function renderSelectedItem() {
-  const item = findSelectedItem();
-  if (!item) {
-    renderEmptyViewer();
-    return;
-  }
-
-  els.pdfViewer.src = pdfViewerSrc(item.pdfPath);
-  els.pdfViewer.title = itemLabel(item);
-}
 
 function setMode(mode) {
   if (routeMode() === mode) {
@@ -296,58 +282,45 @@ function setMode(mode) {
 }
 
 function openManualItem(mode, serial) {
-  state.mode = mode;
-  state.view = "manual";
-  state.query = "";
-  state.chapterNo = "";
-  state.selectedId = serial;
-  state.pdfOpen = true;
-  els.searchInput.value = "";
-  if (routeMode() !== mode) {
-    window.location.hash = mode;
-  } else {
-    render();
+  const items = mode === "disaster" ? disasterItems() : pocketItems();
+  const item = items.find((candidate) => candidate.serial === serial);
+  if (!item) {
+    return;
   }
+  const params = new URLSearchParams({
+    src: item.pdfPath,
+    title: itemLabelFor(mode, item),
+    mode,
+  });
+  window.location.href = `pdf-viewer.html?${params.toString()}`;
 }
 
 function render() {
   renderHome();
   if (state.view === "home") {
-    renderEmptyViewer();
     return;
   }
   renderControls();
   renderList();
-  renderManualPanels();
-}
-
-function renderManualPanels() {
-  els.controls.hidden = state.pdfOpen;
-  els.itemPanel.hidden = state.pdfOpen;
-  els.viewerPanel.hidden = !state.pdfOpen;
-
-  if (state.pdfOpen) {
-    renderSelectedItem();
-  } else {
-    renderEmptyViewer();
-  }
 }
 
 function allManualAssetPaths() {
   const pdfs = [...pocketItems(), ...disasterItems()]
     .map((item) => item.pdfPath)
     .filter(Boolean);
-  return [
+  return [...new Set([
     "index.html",
-    "styles.css?v=20260617-pdf-frame-v1",
-    "app.js?v=20260617-logo-v1",
-    "data/manuals.js",
+    "styles.css?v=20260621-viewer-v1",
+    "app.js?v=20260621-viewer-v1",
+    "pdf-viewer.html",
+    "pdf-viewer.js?v=20260621-viewer-v1",
+    "data/manuals.js?v=20260621-light-v1",
     "manifest.webmanifest",
-    "assets/yurino-logo-clean.png",
+    "assets/yurino-logo-clean.webp",
     "icons/icon-192.png",
     "icons/icon-512.png",
     ...pdfs,
-  ];
+  ])];
 }
 
 function setOfflineStatus(message) {
@@ -362,7 +335,7 @@ async function refreshOfflineStatus() {
     els.offlineButton.disabled = true;
     return;
   }
-  const cache = await caches.open("manual-pwa-v10");
+  const cache = await caches.open("manual-pwa-v13");
   const paths = allManualAssetPaths();
   const cached = await Promise.all(paths.map((path) => cache.match(path)));
   const cachedCount = cached.filter(Boolean).length;
@@ -422,18 +395,36 @@ function setupPwa() {
 }
 
 els.modeTabs.forEach((button) => {
-  button.addEventListener("click", () => setMode(button.dataset.mode));
+  button.addEventListener("click", () => {
+    setMode(button.dataset.mode);
+    closeMenu();
+  });
 });
+
+els.menuButton.addEventListener("click", () => {
+  setMenuOpen(els.menuButton.getAttribute("aria-expanded") !== "true");
+});
+
+document.addEventListener("click", (event) => {
+  if (mobileMenuQuery.matches && !event.target.closest(".mobile-header")) {
+    closeMenu();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && els.menuButton.getAttribute("aria-expanded") === "true") {
+    closeMenu(true);
+  }
+});
+
+mobileMenuQuery.addEventListener("change", syncMenuLayout);
 
 els.homeButton.addEventListener("click", () => {
   history.pushState("", document.title, window.location.pathname + window.location.search);
   applyRoute();
+  closeMenu();
 });
 
-els.pdfBackButton.addEventListener("click", () => {
-  state.pdfOpen = false;
-  render();
-});
 
 els.homeSearchInput.addEventListener("input", (event) => {
   state.homeQuery = event.target.value.trim();
@@ -450,15 +441,11 @@ els.homeSearchResults.addEventListener("click", (event) => {
 
 els.searchInput.addEventListener("input", (event) => {
   state.query = event.target.value.trim();
-  state.selectedId = "";
-  state.pdfOpen = false;
   render();
 });
 
 els.chapterSelect.addEventListener("change", (event) => {
   state.chapterNo = event.target.value;
-  state.selectedId = "";
-  state.pdfOpen = false;
   render();
 });
 
@@ -467,9 +454,7 @@ els.itemList.addEventListener("click", (event) => {
   if (!button) {
     return;
   }
-  state.selectedId = button.dataset.id;
-  state.pdfOpen = true;
-  render();
+  openManualItem(state.mode, button.dataset.id);
 });
 
 els.offlineButton.addEventListener("click", () => saveOffline());
@@ -491,5 +476,6 @@ els.installButton.addEventListener("click", async () => {
 });
 
 window.addEventListener("hashchange", applyRoute);
+syncMenuLayout();
 applyRoute();
 setupPwa();

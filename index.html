@@ -10,21 +10,25 @@
     <title>医療安全マニュアル必携 β版</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260617-pdf-frame-v1">
+    <link rel="stylesheet" href="styles.css?v=20260621-viewer-v1">
   </head>
   <body>
     <header class="mobile-header">
       <div class="brand-lockup">
-        <img class="brand-logo" src="assets/yurino-logo-clean.png" alt="" aria-hidden="true">
+        <img class="brand-logo" src="assets/yurino-logo-clean.webp" alt="" aria-hidden="true">
         <div>
           <p class="eyebrow">長崎百合野病院</p>
           <h1>医療安全マニュアル必携 β版</h1>
         </div>
       </div>
-      <div class="header-actions">
+      <button id="menuButton" class="menu-button" type="button" aria-expanded="false" aria-controls="headerMenu" aria-label="メニューを開く">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+      <div id="headerMenu" class="header-actions" hidden>
         <div class="header-nav">
           <button id="homeButton" class="home-button" type="button" hidden>ホーム</button>
-          <button id="pdfBackButton" class="home-button" type="button" hidden>戻る</button>
         </div>
         <div class="pwa-actions" aria-label="アプリ保存">
           <button id="installButton" class="utility-button" type="button" hidden>インストール</button>
@@ -76,14 +80,11 @@
             <div id="itemList" class="item-list"></div>
           </aside>
 
-          <article class="viewer-panel" aria-label="PDF表示">
-            <iframe id="pdfViewer" class="pdf-viewer" title="PDFビューア"></iframe>
-          </article>
         </section>
       </section>
     </main>
 
-    <script src="data/manuals.js"></script>
-    <script src="app.js?v=20260617-logo-v1"></script>
+    <script src="data/manuals.js?v=20260621-light-v1"></script>
+    <script src="app.js?v=20260621-viewer-v1"></script>
   </body>
 </html>
