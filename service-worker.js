@@ -1,11 +1,11 @@
-const CACHE_NAME = "manual-pwa-v15";
+const CACHE_NAME = "manual-pwa-v16";
 const CORE_ASSETS = [
   "./",
   "index.html",
-  "styles.css?v=20260621-home-top-v1",
-  "app.js?v=20260621-home-top-v1",
+  "styles.css?v=20260621-page-nav-v1",
+  "app.js?v=20260621-page-nav-v1",
   "pdf-viewer.html",
-  "pdf-viewer.js?v=20260621-zoom-v1",
+  "pdf-viewer.js?v=20260621-page-nav-v1",
   "vendor/pdfjs/pdf.min.mjs",
   "vendor/pdfjs/pdf.worker.min.mjs",
   "vendor/pdfjs/wasm/jbig2.wasm",

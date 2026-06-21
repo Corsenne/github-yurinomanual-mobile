@@ -459,6 +459,33 @@ input[type="search"]:focus,
   font-weight: 700;
   text-align: center;
 }
+.pdf-page-controls {
+  display: grid;
+  grid-template-columns: minmax(96px, 1fr) auto minmax(96px, 1fr);
+  gap: 7px;
+  align-items: center;
+}
+
+.pdf-page-nav {
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 6px 10px;
+  font-weight: 700;
+}
+
+.pdf-page-nav:disabled {
+  opacity: 0.45;
+}
+
+.pdf-page-label {
+  min-width: 72px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
 
 .pdf-page-main {
   position: relative;

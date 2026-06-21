@@ -310,10 +310,10 @@ function allManualAssetPaths() {
     .filter(Boolean);
   return [...new Set([
     "index.html",
-    "styles.css?v=20260621-home-top-v1",
-    "app.js?v=20260621-home-top-v1",
+    "styles.css?v=20260621-page-nav-v1",
+    "app.js?v=20260621-page-nav-v1",
     "pdf-viewer.html",
-    "pdf-viewer.js?v=20260621-zoom-v1",
+    "pdf-viewer.js?v=20260621-page-nav-v1",
     "vendor/pdfjs/pdf.min.mjs",
     "vendor/pdfjs/pdf.worker.min.mjs",
     "vendor/pdfjs/wasm/jbig2.wasm",
@@ -341,7 +341,7 @@ async function refreshOfflineStatus() {
     els.offlineButton.disabled = true;
     return;
   }
-  const cache = await caches.open("manual-pwa-v15");
+  const cache = await caches.open("manual-pwa-v16");
   const paths = allManualAssetPaths();
   const cached = await Promise.all(paths.map((path) => cache.match(path)));
   const cachedCount = cached.filter(Boolean).length;

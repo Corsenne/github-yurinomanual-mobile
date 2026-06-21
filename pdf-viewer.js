@@ -16,6 +16,9 @@ const zoomOutButton = document.querySelector("#zoomOutButton");
 const zoomInButton = document.querySelector("#zoomInButton");
 const zoomFitButton = document.querySelector("#zoomFitButton");
 const zoomLabel = document.querySelector("#zoomLabel");
+const previousPageButton = document.querySelector("#previousPageButton");
+const nextPageButton = document.querySelector("#nextPageButton");
+const pageLabel = document.querySelector("#pageLabel");
 
 let pdfDocument = null;
 let fitScale = 1;
@@ -23,6 +26,8 @@ let scale = 1;
 let generation = 0;
 let pageObserver = null;
 let resizeTimer = 0;
+let scrollFrame = 0;
+let currentPage = 1;
 let pinchStartDistance = 0;
 let pinchStartScale = 1;
 let pinchTargetScale = 1;
@@ -62,8 +67,48 @@ function updateZoomControls(displayScale = scale) {
   zoomInButton.disabled = ratio >= 3.99;
 }
 
-function cancelRendering() {
-  for (const task of renderTasks) {
+function updatePageControls() {
+  const totalPages = pdfDocument?.numPages || 1;
+  currentPage = Math.min(totalPages, Math.max(1, currentPage));
+  pageLabel.textContent = `${currentPage} / ${totalPages}`;
+  previousPageButton.disabled = currentPage <= 1;
+  nextPageButton.disabled = currentPage >= totalPages;
+}
+
+function updateCurrentPageFromScroll() {
+  if (!pdfDocument) {
+    return;
+  }
+  const marker = scrollArea.scrollTop + scrollArea.clientHeight * 0.35;
+  let visiblePage = 1;
+  for (const sheet of pagesElement.querySelectorAll(".pdf-page-sheet")) {
+    if (sheet.offsetTop <= marker) {
+      visiblePage = Number(sheet.dataset.pageNumber);
+    } else {
+      break;
+    }
+  }
+  if (visiblePage !== currentPage) {
+    currentPage = visiblePage;
+    updatePageControls();
+  }
+}
+
+function goToPage(pageNumber) {
+  if (!pdfDocument) {
+    return;
+  }
+  const targetPage = Math.min(pdfDocument.numPages, Math.max(1, pageNumber));
+  const sheet = pagesElement.querySelector(`[data-page-number="${targetPage}"]`);
+  if (!sheet) {
+    return;
+  }
+  currentPage = targetPage;
+  updatePageControls();
+  scrollArea.scrollTo({ top: Math.max(0, sheet.offsetTop - 8), behavior: "smooth" });
+}
+
+function cancelRendering() {  for (const task of renderTasks) {
     task.cancel();
   }
   renderTasks.clear();
@@ -148,6 +193,7 @@ async function buildPages(nextScale, ratios = { x: 0.5, y: 0 }) {
     const pageElement = document.createElement("section");
     const placeholder = document.createElement("span");
     pageElement.className = "pdf-page-sheet";
+    pageElement.dataset.pageNumber = String(pageNumber);
     pageElement.style.width = `${Math.ceil(viewport.width)}px`;
     pageElement.style.height = `${Math.ceil(viewport.height)}px`;
     placeholder.className = "pdf-page-placeholder";
@@ -161,7 +207,8 @@ async function buildPages(nextScale, ratios = { x: 0.5, y: 0 }) {
   requestAnimationFrame(() => {
     restoreScroll(ratios);
     scrollArea.setAttribute("aria-busy", "false");
-    loadingElement.hidden = true;
+    loadingElement.hidden = true;    updateCurrentPageFromScroll();
+
   });
 }
 
@@ -180,6 +227,16 @@ function pointerDistance() {
   }
   return Math.hypot(values[0].x - values[1].x, values[0].y - values[1].y);
 }
+
+scrollArea.addEventListener("scroll", () => {
+  if (scrollFrame) {
+    return;
+  }
+  scrollFrame = requestAnimationFrame(() => {
+    scrollFrame = 0;
+    updateCurrentPageFromScroll();
+  });
+});
 
 scrollArea.addEventListener("pointerdown", (event) => {
   scrollArea.setPointerCapture(event.pointerId);
@@ -235,6 +292,8 @@ scrollArea.addEventListener("wheel", (event) => {
 zoomOutButton.addEventListener("click", () => setScale(scale / 1.25));
 zoomInButton.addEventListener("click", () => setScale(scale * 1.25));
 zoomFitButton.addEventListener("click", () => setScale(fitScale));
+previousPageButton.addEventListener("click", () => goToPage(currentPage - 1));
+nextPageButton.addEventListener("click", () => goToPage(currentPage + 1));
 backButton.addEventListener("click", goBack);
 
 window.addEventListener("resize", () => {
@@ -266,6 +325,8 @@ async function loadPdf() {
       useWasm: true,
       useSystemFonts: true,
     }).promise;
+    currentPage = 1;
+    updatePageControls();
     const firstPage = await pdfDocument.getPage(1);
     fitScale = Math.max((scrollArea.clientWidth - 16) / firstPage.getViewport({ scale: 1 }).width, 0.1);
     scale = fitScale;

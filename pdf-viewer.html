@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#12312d">
     <title>PDF | 医療安全マニュアル必携 β版</title>
-    <link rel="stylesheet" href="styles.css?v=20260621-home-top-v1">
+    <link rel="stylesheet" href="styles.css?v=20260621-page-nav-v1">
   </head>
   <body class="pdf-page">
     <header class="pdf-page-header">
@@ -19,6 +19,11 @@
         <button id="zoomInButton" class="pdf-zoom-button" type="button" aria-label="拡大">＋</button>
         <button id="zoomFitButton" class="pdf-zoom-fit" type="button">幅に合わせる</button>
       </div>
+      <div class="pdf-page-controls" role="group" aria-label="PDFページ移動">
+        <button id="previousPageButton" class="pdf-page-nav" type="button">← 前へ</button>
+        <span id="pageLabel" class="pdf-page-label" role="status">1 / 1</span>
+        <button id="nextPageButton" class="pdf-page-nav" type="button">次へ →</button>
+      </div>
     </header>
     <main class="pdf-page-main">
       <div id="pdfCanvasScroll" class="pdf-canvas-scroll" aria-busy="true" tabindex="0">
@@ -27,6 +32,6 @@
       <p id="pdfLoading" class="pdf-message">PDFを読み込んでいます…</p>
       <p id="pdfError" class="pdf-message" hidden>PDFを開けませんでした。</p>
     </main>
-    <script type="module" src="pdf-viewer.js?v=20260621-zoom-v1"></script>
+    <script type="module" src="pdf-viewer.js?v=20260621-page-nav-v1"></script>
   </body>
 </html>
