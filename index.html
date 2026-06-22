@@ -10,7 +10,7 @@
     <title>医療安全マニュアル必携 β版</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=20260621-page-nav-v1">
+    <link rel="stylesheet" href="styles.css?v=20260622-refresh-v1">
   </head>
   <body>
     <header class="mobile-header">
@@ -30,10 +30,10 @@
         <div class="header-nav">
           <button id="homeButton" class="home-button" type="button" hidden>ホーム</button>
         </div>
-        <div class="pwa-actions" aria-label="アプリ保存">
+        <div class="pwa-actions" aria-label="アプリ管理">
           <button id="installButton" class="utility-button" type="button" hidden>インストール</button>
-          <button id="offlineButton" class="utility-button" type="button">オフライン保存</button>
-          <span id="offlineStatus" class="offline-status" role="status">未保存</span>
+          <button id="updateButton" class="utility-button" type="button">最新の状態に更新</button>
+          <span id="updateStatus" class="update-status" role="status">更新確認できます</span>
         </div>
         <div class="mode-tabs" role="tablist" aria-label="マニュアル切替" hidden>
           <button class="mode-tab is-active" type="button" data-mode="pocket">ポケット</button>
@@ -53,13 +53,13 @@
           <a class="manual-card pocket-card" href="#pocket" data-card-mode="pocket">
             <span class="manual-card-label">医療安全</span>
             <span class="manual-card-title">ポケットマニュアル</span>
-            <span class="manual-card-meta" id="pocketUpdated">最終更新日 2026年6月17日</span>
+            <span class="manual-card-meta" id="pocketUpdated">最終更新日 2026年6月21日</span>
             <span class="manual-card-count" id="pocketCount">0件</span>
           </a>
           <a class="manual-card disaster-card" href="#disaster" data-card-mode="disaster">
             <span class="manual-card-label">災害対応</span>
             <span class="manual-card-title">災害マニュアル</span>
-            <span class="manual-card-meta" id="disasterUpdated">最終更新日 2026年6月17日</span>
+            <span class="manual-card-meta" id="disasterUpdated">最終更新日 2026年6月22日</span>
             <span class="manual-card-count" id="disasterCount">0件</span>
           </a>
         </div>
@@ -84,7 +84,7 @@
       </section>
     </main>
 
-    <script src="data/manuals.js?v=20260621-light-v1"></script>
-    <script src="app.js?v=20260621-page-nav-v1"></script>
+    <script src="data/manuals.js?v=20260622-refresh-v1"></script>
+    <script src="app.js?v=20260622-refresh-v1"></script>
   </body>
 </html>
