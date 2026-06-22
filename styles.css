@@ -466,6 +466,37 @@ input[type="search"]:focus,
   align-items: center;
 }
 
+.manual-item-controls {
+  display: grid;
+  grid-template-columns: minmax(96px, 1fr) auto minmax(96px, 1fr);
+  gap: 7px;
+  align-items: center;
+  padding: 7px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.manual-item-nav {
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 6px;
+  background: #f5faf8;
+  color: #12312d;
+  padding: 6px 10px;
+  font-weight: 800;
+}
+
+.manual-item-nav:disabled {
+  opacity: 0.42;
+}
+
+.manual-item-label {
+  min-width: 82px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
 .pdf-page-nav {
   min-height: 42px;
   border: 1px solid rgba(255, 255, 255, 0.38);

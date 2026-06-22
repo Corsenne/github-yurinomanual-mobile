@@ -2,11 +2,11 @@ const archive = window.MANUAL_ARCHIVE;
 const manualMeta = {
   pocket: {
     title: "ポケットマニュアル",
-    updatedAt: "2026年6月17日",
+    updatedAt: archive.metadata?.pocketUpdatedAt || "未設定",
   },
   disaster: {
     title: "災害マニュアル",
-    updatedAt: "2026年6月17日",
+    updatedAt: archive.metadata?.disasterUpdatedAt || "未設定",
   },
 };
 
@@ -291,7 +291,11 @@ function openManualItem(mode, serial) {
     src: item.pdfPath,
     title: itemLabelFor(mode, item),
     mode,
+    serial: item.serial,
   });
+  if (mode === "pocket" && item.chapterNo) {
+    params.set("chapter", item.chapterNo);
+  }
   window.location.href = `pdf-viewer.html?${params.toString()}`;
 }
 
@@ -310,17 +314,13 @@ function allManualAssetPaths() {
     .filter(Boolean);
   return [...new Set([
     "index.html",
-    "styles.css?v=20260621-page-nav-v1",
-    "app.js?v=20260621-page-nav-v1",
+    "styles.css?v=20260622-lite-v2",
+    "app.js?v=20260622-lite-v2",
     "pdf-viewer.html",
-    "pdf-viewer.js?v=20260621-page-nav-v1",
+    "pdf-viewer.js?v=20260622-lite-v2",
     "vendor/pdfjs/pdf.min.mjs",
     "vendor/pdfjs/pdf.worker.min.mjs",
-    "vendor/pdfjs/wasm/jbig2.wasm",
-    "vendor/pdfjs/wasm/openjpeg.wasm",
-    "vendor/pdfjs/wasm/openjpeg_nowasm_fallback.js",
-    "vendor/pdfjs/wasm/qcms_bg.wasm",
-    "data/manuals.js?v=20260621-light-v1",
+    "data/manuals.js?v=20260622-lite-v2",
     "manifest.webmanifest",
     "assets/yurino-logo-clean.webp",
     "icons/icon-192.png",
@@ -341,7 +341,7 @@ async function refreshOfflineStatus() {
     els.offlineButton.disabled = true;
     return;
   }
-  const cache = await caches.open("manual-pwa-v16");
+  const cache = await caches.open("manual-pwa-v18");
   const paths = allManualAssetPaths();
   const cached = await Promise.all(paths.map((path) => cache.match(path)));
   const cachedCount = cached.filter(Boolean).length;

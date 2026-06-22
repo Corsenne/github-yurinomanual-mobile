@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#12312d">
     <title>PDF | 医療安全マニュアル必携 β版</title>
-    <link rel="stylesheet" href="styles.css?v=20260621-page-nav-v1">
+    <link rel="stylesheet" href="styles.css?v=20260622-lite-v2">
   </head>
   <body class="pdf-page">
     <header class="pdf-page-header">
@@ -19,10 +19,15 @@
         <button id="zoomInButton" class="pdf-zoom-button" type="button" aria-label="拡大">＋</button>
         <button id="zoomFitButton" class="pdf-zoom-fit" type="button">幅に合わせる</button>
       </div>
+      <div class="manual-item-controls" role="group" aria-label="チャプター内の資料移動">
+        <button id="previousItemButton" class="manual-item-nav" type="button">← 前の資料</button>
+        <span id="itemPositionLabel" class="manual-item-label" role="status">資料 1 / 1</span>
+        <button id="nextItemButton" class="manual-item-nav" type="button">次の資料 →</button>
+      </div>
       <div class="pdf-page-controls" role="group" aria-label="PDFページ移動">
-        <button id="previousPageButton" class="pdf-page-nav" type="button">← 前へ</button>
+        <button id="previousPageButton" class="pdf-page-nav" type="button">← 前ページ</button>
         <span id="pageLabel" class="pdf-page-label" role="status">1 / 1</span>
-        <button id="nextPageButton" class="pdf-page-nav" type="button">次へ →</button>
+        <button id="nextPageButton" class="pdf-page-nav" type="button">次ページ →</button>
       </div>
     </header>
     <main class="pdf-page-main">
@@ -32,6 +37,7 @@
       <p id="pdfLoading" class="pdf-message">PDFを読み込んでいます…</p>
       <p id="pdfError" class="pdf-message" hidden>PDFを開けませんでした。</p>
     </main>
-    <script type="module" src="pdf-viewer.js?v=20260621-page-nav-v1"></script>
+    <script src="data/manuals.js?v=20260622-lite-v2"></script>
+    <script type="module" src="pdf-viewer.js?v=20260622-lite-v2"></script>
   </body>
 </html>

@@ -24,7 +24,7 @@ Excel、Python、更新bat、作業済みファイルは含めません。
 
 ## 更新方法
 
-元アプリ側でPDFや `data/rules.js` を更新したあと、元フォルダで次を実行すると、この配布用フォルダを作り直せます。
+元アプリ側でPDFや `data/manuals.js` を更新したあと、元フォルダで次を実行すると、この配布用フォルダを作り直せます。最終更新日は、生成された `data/manuals.js` のメタデータから表示します。
 
 ```bat
 runtime\python\python.exe build_github_pages_mobile.py
