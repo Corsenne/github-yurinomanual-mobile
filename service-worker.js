@@ -1,14 +1,14 @@
-const CACHE_NAME = "manual-pwa-v18";
+const CACHE_NAME = "manual-pwa-v19";
 const CORE_ASSETS = [
   "./",
   "index.html",
-  "styles.css?v=20260622-lite-v2",
-  "app.js?v=20260622-lite-v2",
+  "styles.css?v=20260622-refresh-v1",
+  "app.js?v=20260622-refresh-v1",
   "pdf-viewer.html",
-  "pdf-viewer.js?v=20260622-lite-v2",
+  "pdf-viewer.js?v=20260622-refresh-v1",
   "vendor/pdfjs/pdf.min.mjs",
   "vendor/pdfjs/pdf.worker.min.mjs",
-  "data/manuals.js?v=20260622-lite-v2",
+  "data/manuals.js?v=20260622-refresh-v1",
   "manifest.webmanifest",
   "assets/yurino-logo-clean.webp",
   "icons/icon-192.png",
@@ -52,33 +52,107 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("message", (event) => {
-  if (event.data?.type !== "CACHE_ALL" || !Array.isArray(event.data.urls)) {
+  if (event.data?.type !== "REFRESH_LATEST") {
     return;
   }
-
-  const urls = event.data.urls;
-  event.waitUntil(cacheUrls(urls, event.source));
+  event.waitUntil(refreshLatest(event.source));
 });
 
-async function cacheUrls(urls, client) {
+function scopedUrl(path) {
+  return new URL(path, self.registration.scope).href;
+}
+
+function htmlAssetUrls(html) {
+  const urls = [];
+  for (const match of html.matchAll(/(?:src|href)=["']([^"'#]+)["']/g)) {
+    const url = new URL(match[1], self.registration.scope);
+    if (url.origin === self.location.origin && url.href.startsWith(self.registration.scope)) {
+      urls.push(url.href);
+    }
+  }
+  return urls;
+}
+
+function parseManualArchive(source) {
+  const prefix = "window.MANUAL_ARCHIVE=";
+  const start = source.indexOf(prefix);
+  if (start < 0) {
+    throw new Error("Manual archive was not found");
+  }
+  return JSON.parse(source.slice(start + prefix.length).trim().replace(/;$/, ""));
+}
+
+async function fetchLatest(url) {
+  const response = await fetch(new Request(url, { cache: "no-store" }));
+  if (!response.ok) {
+    throw new Error(`Failed to download ${url}`);
+  }
+  return response;
+}
+
+async function refreshLatest(client) {
   const cache = await caches.open(CACHE_NAME);
   let done = 0;
+  let total = 0;
   try {
-    for (const url of urls) {
-      const request = new Request(url, { cache: "reload" });
-      const cached = await cache.match(request);
-      if (!cached) {
-        const response = await fetch(request);
-        if (!response.ok) {
-          throw new Error(`Failed to cache ${url}`);
+    const indexUrl = scopedUrl("index.html");
+    const viewerUrl = scopedUrl("pdf-viewer.html");
+    const prefetched = new Map();
+
+    const indexResponse = await fetchLatest(indexUrl);
+    const indexText = await indexResponse.clone().text();
+    prefetched.set(indexUrl, indexResponse);
+
+    const viewerResponse = await fetchLatest(viewerUrl);
+    const viewerText = await viewerResponse.clone().text();
+    prefetched.set(viewerUrl, viewerResponse);
+
+    const discoveredUrls = [...htmlAssetUrls(indexText), ...htmlAssetUrls(viewerText)];
+    const dataUrl = discoveredUrls.find((url) => new URL(url).pathname.endsWith("/data/manuals.js"))
+      || scopedUrl("data/manuals.js");
+    const dataResponse = await fetchLatest(dataUrl);
+    const archive = parseManualArchive(await dataResponse.clone().text());
+    prefetched.set(dataUrl, dataResponse);
+
+    const items = [
+      ...(archive.pocketManual?.items || []),
+      ...(archive.disasterManual?.items || []),
+    ];
+    const pdfUrls = items.map((item) => item.pdfPath).filter(Boolean).map(scopedUrl);
+    const urls = [...new Set([
+      indexUrl,
+      viewerUrl,
+      ...discoveredUrls,
+      scopedUrl("vendor/pdfjs/pdf.min.mjs"),
+      scopedUrl("vendor/pdfjs/pdf.worker.min.mjs"),
+      ...pdfUrls,
+    ])];
+    total = urls.length;
+
+    let nextIndex = 0;
+    const worker = async () => {
+      while (nextIndex < urls.length) {
+        const url = urls[nextIndex];
+        nextIndex += 1;
+        const response = prefetched.get(url) || await fetchLatest(url);
+        await cache.put(new Request(url), response.clone());
+        if (url === indexUrl) {
+          await cache.put(new Request(self.registration.scope), response.clone());
         }
-        await cache.put(request, response);
+        done += 1;
+        client?.postMessage({ type: "REFRESH_PROGRESS", done, total });
       }
-      done += 1;
-      client?.postMessage({ type: "CACHE_PROGRESS", done, total: urls.length });
-    }
-    client?.postMessage({ type: "CACHE_DONE", done, total: urls.length });
+    };
+    await Promise.all(Array.from({ length: Math.min(4, urls.length) }, worker));
+
+    const desiredUrls = new Set([...urls, self.registration.scope]);
+    const cachedRequests = await cache.keys();
+    await Promise.all(cachedRequests
+      .filter((request) => !desiredUrls.has(request.url))
+      .map((request) => cache.delete(request)));
+
+    client?.postMessage({ type: "REFRESH_DONE", done, total });
   } catch (error) {
-    client?.postMessage({ type: "CACHE_ERROR", done, total: urls.length, message: String(error) });
+    client?.postMessage({ type: "REFRESH_ERROR", done, total, message: String(error) });
   }
 }

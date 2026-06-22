@@ -40,8 +40,8 @@ const els = {
   itemPanel: document.querySelector(".item-panel"),
   itemList: document.querySelector("#itemList"),
   installButton: document.querySelector("#installButton"),
-  offlineButton: document.querySelector("#offlineButton"),
-  offlineStatus: document.querySelector("#offlineStatus"),
+  updateButton: document.querySelector("#updateButton"),
+  updateStatus: document.querySelector("#updateStatus"),
 };
 
 let deferredInstallPrompt = null;
@@ -308,95 +308,82 @@ function render() {
   renderList();
 }
 
-function allManualAssetPaths() {
-  const pdfs = [...pocketItems(), ...disasterItems()]
-    .map((item) => item.pdfPath)
-    .filter(Boolean);
-  return [...new Set([
-    "index.html",
-    "styles.css?v=20260622-lite-v2",
-    "app.js?v=20260622-lite-v2",
-    "pdf-viewer.html",
-    "pdf-viewer.js?v=20260622-lite-v2",
-    "vendor/pdfjs/pdf.min.mjs",
-    "vendor/pdfjs/pdf.worker.min.mjs",
-    "data/manuals.js?v=20260622-lite-v2",
-    "manifest.webmanifest",
-    "assets/yurino-logo-clean.webp",
-    "icons/icon-192.png",
-    "icons/icon-512.png",
-    ...pdfs,
-  ])];
-}
-
-function setOfflineStatus(message) {
-  if (els.offlineStatus) {
-    els.offlineStatus.textContent = message;
+function setUpdateStatus(message) {
+  if (els.updateStatus) {
+    els.updateStatus.textContent = message;
   }
 }
 
-async function refreshOfflineStatus() {
-  if (!("caches" in window)) {
-    setOfflineStatus("この環境ではオフライン保存を利用できません");
-    els.offlineButton.disabled = true;
+function waitForWorkerActivation(worker, timeout = 10000) {
+  if (!worker || worker.state === "activated") {
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => {
+    const timer = window.setTimeout(resolve, timeout);
+    worker.addEventListener("statechange", () => {
+      if (worker.state === "activated") {
+        window.clearTimeout(timer);
+        resolve();
+      }
+    });
+  });
+}
+
+async function updateLatest() {
+  if (!navigator.onLine) {
+    setUpdateStatus("インターネット接続を確認してください");
     return;
   }
-  const cache = await caches.open("manual-pwa-v18");
-  const paths = allManualAssetPaths();
-  const cached = await Promise.all(paths.map((path) => cache.match(path)));
-  const cachedCount = cached.filter(Boolean).length;
-  if (cachedCount >= paths.length) {
-    setOfflineStatus(`保存済み ${cachedCount}/${paths.length}`);
-  } else {
-    setOfflineStatus(`未保存 ${cachedCount}/${paths.length}`);
-  }
-}
-
-async function saveOffline() {
   if (!serviceWorkerReady) {
-    setOfflineStatus("この環境ではオフライン保存を利用できません");
+    setUpdateStatus("この環境では更新機能を利用できません");
     return;
   }
-  const registration = await serviceWorkerReady;
-  const worker = navigator.serviceWorker.controller || registration.active;
-  if (!worker) {
-    setOfflineStatus("準備中です。数秒後にもう一度押してください");
-    return;
+  els.updateButton.disabled = true;
+  setUpdateStatus("GitHubの最新版を確認中…");
+  try {
+    const registration = await serviceWorkerReady;
+    await registration.update();
+    await waitForWorkerActivation(registration.installing || registration.waiting);
+    const worker = registration.active || navigator.serviceWorker.controller;
+    if (!worker) {
+      throw new Error("Service Worker is not ready");
+    }
+    setUpdateStatus("最新版をダウンロード中…");
+    worker.postMessage({ type: "REFRESH_LATEST" });
+  } catch (error) {
+    console.error(error);
+    els.updateButton.disabled = false;
+    setUpdateStatus("更新に失敗しました。通信状態を確認してください");
   }
-  const paths = allManualAssetPaths();
-  els.offlineButton.disabled = true;
-  setOfflineStatus(`保存中 0/${paths.length}`);
-  worker.postMessage({ type: "CACHE_ALL", urls: paths });
 }
 
 function setupPwa() {
   if ("serviceWorker" in navigator) {
     serviceWorkerReady = navigator.serviceWorker
-      .register("service-worker.js")
+      .register("service-worker.js", { updateViaCache: "none" })
       .then(() => navigator.serviceWorker.ready)
       .then((registration) => {
-        refreshOfflineStatus();
         return registration;
       })
       .catch(() => {
-        setOfflineStatus("オフライン保存の準備に失敗しました");
+        setUpdateStatus("更新機能の準備に失敗しました");
       });
     navigator.serviceWorker.addEventListener("message", (event) => {
-      if (event.data?.type === "CACHE_PROGRESS") {
-        setOfflineStatus(`保存中 ${event.data.done}/${event.data.total}`);
+      if (event.data?.type === "REFRESH_PROGRESS") {
+        setUpdateStatus(`ダウンロード中 ${event.data.done}/${event.data.total}`);
       }
-      if (event.data?.type === "CACHE_DONE") {
-        els.offlineButton.disabled = false;
-        setOfflineStatus(`保存済み ${event.data.done}/${event.data.total}`);
+      if (event.data?.type === "REFRESH_DONE") {
+        setUpdateStatus(`更新完了 ${event.data.done}/${event.data.total}`);
+        window.setTimeout(() => window.location.reload(), 700);
       }
-      if (event.data?.type === "CACHE_ERROR") {
-        els.offlineButton.disabled = false;
-        setOfflineStatus(`保存エラー ${event.data.done}/${event.data.total}`);
+      if (event.data?.type === "REFRESH_ERROR") {
+        els.updateButton.disabled = false;
+        setUpdateStatus(`更新エラー ${event.data.done}/${event.data.total}`);
       }
     });
   } else {
-    setOfflineStatus("このブラウザではオフライン保存を利用できません");
-    els.offlineButton.disabled = true;
+    setUpdateStatus("このブラウザでは更新機能を利用できません");
+    els.updateButton.disabled = true;
   }
 }
 
@@ -463,7 +450,7 @@ els.itemList.addEventListener("click", (event) => {
   openManualItem(state.mode, button.dataset.id);
 });
 
-els.offlineButton.addEventListener("click", () => saveOffline());
+els.updateButton.addEventListener("click", () => updateLatest());
 
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();

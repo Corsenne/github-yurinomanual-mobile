@@ -315,7 +315,7 @@ input[type="search"]:focus,
   opacity: 0.72;
 }
 
-.offline-status {
+.update-status {
   min-height: 20px;
   color: rgba(255, 255, 255, 0.78);
   font-size: 12px;
