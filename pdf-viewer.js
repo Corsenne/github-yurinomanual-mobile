@@ -8,6 +8,7 @@ const title = params.get("title") || "PDF";
 const mode = params.get("mode") === "disaster" ? "disaster" : "pocket";
 const serial = params.get("serial") || "";
 const chapter = params.get("chapter") || "";
+const initialPage = params.get("page") || "1";
 const backButton = document.querySelector("#viewerBackButton");
 const titleElement = document.querySelector("#pdfTitle");
 const scrollArea = document.querySelector("#pdfCanvasScroll");
@@ -21,9 +22,6 @@ const zoomLabel = document.querySelector("#zoomLabel");
 const previousPageButton = document.querySelector("#previousPageButton");
 const nextPageButton = document.querySelector("#nextPageButton");
 const pageLabel = document.querySelector("#pageLabel");
-const previousItemButton = document.querySelector("#previousItemButton");
-const nextItemButton = document.querySelector("#nextItemButton");
-const itemPositionLabel = document.querySelector("#itemPositionLabel");
 
 let pdfDocument = null;
 let fitScale = 1;
@@ -61,16 +59,7 @@ function chapterItems() {
 const manualItems = chapterItems();
 const currentItemIndex = manualItems.findIndex((item) => item.serial === serial);
 
-function updateItemControls() {
-  const hasCurrentItem = currentItemIndex >= 0;
-  previousItemButton.disabled = !hasCurrentItem || currentItemIndex === 0;
-  nextItemButton.disabled = !hasCurrentItem || currentItemIndex === manualItems.length - 1;
-  itemPositionLabel.textContent = hasCurrentItem
-    ? `資料 ${currentItemIndex + 1} / ${manualItems.length}`
-    : "資料移動なし";
-}
-
-function goToItem(index) {
+function goToItem(index, page = "1") {
   const item = manualItems[index];
   if (!item) {
     return;
@@ -84,6 +73,7 @@ function goToItem(index) {
   if (mode === "pocket" && item.chapterNo) {
     nextParams.set("chapter", item.chapterNo);
   }
+  nextParams.set("page", page);
   window.location.href = `pdf-viewer.html?${nextParams.toString()}`;
 }
 
@@ -101,11 +91,7 @@ function safePdfUrl(path) {
 }
 
 function goBack() {
-  if (window.history.length > 1) {
-    window.history.back();
-    return;
-  }
-  window.location.href = `index.html#${mode}`;
+  window.location.href = "index.html";
 }
 
 function clampScale(value) {
@@ -121,10 +107,15 @@ function updateZoomControls(displayScale = scale) {
 
 function updatePageControls() {
   const totalPages = pdfDocument?.numPages || 1;
+  const hasCurrentItem = currentItemIndex >= 0;
+  const isFirstItem = !hasCurrentItem || currentItemIndex === 0;
+  const isLastItem = !hasCurrentItem || currentItemIndex === manualItems.length - 1;
   currentPage = Math.min(totalPages, Math.max(1, currentPage));
-  pageLabel.textContent = `${currentPage} / ${totalPages}`;
-  previousPageButton.disabled = currentPage <= 1;
-  nextPageButton.disabled = currentPage >= totalPages;
+  pageLabel.textContent = hasCurrentItem
+    ? `資料 ${currentItemIndex + 1}/${manualItems.length}・${currentPage}/${totalPages}ページ`
+    : `${currentPage} / ${totalPages}`;
+  previousPageButton.disabled = currentPage <= 1 && isFirstItem;
+  nextPageButton.disabled = currentPage >= totalPages && isLastItem;
 }
 
 function updateCurrentPageFromScroll() {
@@ -146,7 +137,7 @@ function updateCurrentPageFromScroll() {
   }
 }
 
-function goToPage(pageNumber) {
+function goToPage(pageNumber, behavior = "smooth") {
   if (!pdfDocument) {
     return;
   }
@@ -157,7 +148,29 @@ function goToPage(pageNumber) {
   }
   currentPage = targetPage;
   updatePageControls();
-  scrollArea.scrollTo({ top: Math.max(0, sheet.offsetTop - 8), behavior: "smooth" });
+  scrollArea.scrollTo({ top: Math.max(0, sheet.offsetTop - 8), behavior });
+}
+
+function goPrevious() {
+  if (!pdfDocument) {
+    return;
+  }
+  if (currentPage > 1) {
+    goToPage(currentPage - 1);
+    return;
+  }
+  goToItem(currentItemIndex - 1, "last");
+}
+
+function goNext() {
+  if (!pdfDocument) {
+    return;
+  }
+  if (currentPage < pdfDocument.numPages) {
+    goToPage(currentPage + 1);
+    return;
+  }
+  goToItem(currentItemIndex + 1);
 }
 
 function cancelRendering() {  for (const task of renderTasks) {
@@ -344,10 +357,8 @@ scrollArea.addEventListener("wheel", (event) => {
 zoomOutButton.addEventListener("click", () => setScale(scale / 1.25));
 zoomInButton.addEventListener("click", () => setScale(scale * 1.25));
 zoomFitButton.addEventListener("click", () => setScale(fitScale));
-previousPageButton.addEventListener("click", () => goToPage(currentPage - 1));
-nextPageButton.addEventListener("click", () => goToPage(currentPage + 1));
-previousItemButton.addEventListener("click", () => goToItem(currentItemIndex - 1));
-nextItemButton.addEventListener("click", () => goToItem(currentItemIndex + 1));
+previousPageButton.addEventListener("click", goPrevious);
+nextPageButton.addEventListener("click", goNext);
 backButton.addEventListener("click", goBack);
 
 window.addEventListener("resize", () => {
@@ -377,12 +388,19 @@ async function loadPdf() {
       url: pdfUrl.href,
       useSystemFonts: true,
     }).promise;
-    currentPage = 1;
+    const targetInitialPage = Math.min(
+      pdfDocument.numPages,
+      Math.max(1, initialPage === "last" ? pdfDocument.numPages : Number(initialPage) || 1),
+    );
+    currentPage = targetInitialPage;
     updatePageControls();
     const firstPage = await pdfDocument.getPage(1);
     fitScale = Math.max((scrollArea.clientWidth - 16) / firstPage.getViewport({ scale: 1 }).width, 0.1);
     scale = fitScale;
     await buildPages(scale);
+    if (targetInitialPage > 1) {
+      requestAnimationFrame(() => goToPage(targetInitialPage, "auto"));
+    }
   } catch (error) {
     console.error(error);
     loadingElement.hidden = true;
@@ -390,5 +408,4 @@ async function loadPdf() {
   }
 }
 
-updateItemControls();
 loadPdf();
