@@ -91,7 +91,7 @@ function safePdfUrl(path) {
 }
 
 function goBack() {
-  window.location.href = "index.html";
+  window.location.href = `index.html#${mode}`;
 }
 
 function clampScale(value) {
@@ -359,6 +359,7 @@ zoomInButton.addEventListener("click", () => setScale(scale * 1.25));
 zoomFitButton.addEventListener("click", () => setScale(fitScale));
 previousPageButton.addEventListener("click", goPrevious);
 nextPageButton.addEventListener("click", goNext);
+backButton.textContent = mode === "disaster" ? "← 災害マニュアルへ" : "← ポケットマニュアルへ";
 backButton.addEventListener("click", goBack);
 
 window.addEventListener("resize", () => {
