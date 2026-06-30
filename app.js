@@ -231,7 +231,9 @@ function filteredItems() {
 
 function itemLabelFor(mode, item) {
   if (mode === "disaster") {
-    return item.number && item.number !== "0" ? `${item.number}. ${item.title}` : item.title;
+    return item.number !== undefined && item.number !== null && item.number !== ""
+      ? `${item.number}. ${item.title}`
+      : item.title;
   }
   return [item.itemNo, item.title].filter(Boolean).join("  ");
 }
